@@ -563,3 +563,7 @@ public class KDCircularProgress: UIView, CAAnimationDelegate {
         }
     }
 }
+
+extension KDCircularProgress {
+    
+}
