@@ -12,15 +12,33 @@ public enum KDCircularProgressGlowMode {
     case forward, reverse, constant, noGlow
 }
 
+public class KDCircularProgressThumbViewParameters {
+    public var showThumbView = false
+    public var thumViewBackgroundColor = UIColor.green
+    public var size = CGSize.zero
+    public var borderColor = UIColor.clear
+    public var borderWidth: CGFloat = 0
+    public var digitLabelTextColor = UIColor.white
+    public var percentLabelTextColor = UIColor.white
+    public var digitLabelFont = UIFont.systemFont(ofSize: 14)
+    public var percentLabelFont = UIFont.systemFont(ofSize: 9)
+    
+    public init() { }
+}
+
 @IBDesignable
 public class KDCircularProgress: UIView, CAAnimationDelegate {
-    
+
     private struct Conversion {
         static func degreesToRadians (value:CGFloat) -> CGFloat {
             return value * CGFloat.pi / 180.0
         }
+        
+        static func radiansToDegrees (value:CGFloat) -> CGFloat {
+            return value * 180.0 / CGFloat.pi
+        }
     }
-    
+
     private struct Utility {
         static func clamp<T: Comparable>(value: T, minMax: (T, T)) -> T {
             let (min, max) = minMax
