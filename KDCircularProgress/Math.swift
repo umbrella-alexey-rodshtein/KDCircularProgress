@@ -44,7 +44,8 @@ internal class Math {
     }
     
     internal class func adjustDegree(startAngle: Double, degree: Double) -> Double {
-        return (360 + startAngle) > degree ? degree : -(360 - degree)2    }
+        return (360 + startAngle) > degree ? degree : -(360 - degree)
+    }
     
     internal class func degreeFromValue(startAngle: Double, value: Float, maxValue: Float, minValue: Float) -> Double {
         let ratio = Double((maxValue - minValue) / 360)
