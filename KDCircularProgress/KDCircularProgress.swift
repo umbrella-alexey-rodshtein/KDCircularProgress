@@ -580,8 +580,183 @@ public class KDCircularProgress: UIView, CAAnimationDelegate {
             locationsCache = nil
         }
     }
-}
-
-extension KDCircularProgress {
     
+    
+    //Alexey R. Changes
+    
+    //MARK: - Thumb view
+    public var thumbDigitLabel = UILabel()
+    private var thumbPercentLabel = UILabel()
+    
+    private var thumbParameters = KDCircularProgressThumbViewParameters()
+    private var thumbDigitLabelFrame = CGRect.zero
+    private var thumbPercentLabelFrame = CGRect.zero
+    private var thumbViewIsAdded = false
+
+    private var thumbView: UIView! {
+        didSet {
+            thumbView.backgroundColor = .red
+        }
+    }
+    
+    private func thumbCenter(degree: Double) -> CGPoint {
+        return Math.pointFromAngle(frame: bounds, angle: degree, radius: Double(self.radius * 0.9))
+    }
+    
+    private func addThumbView(parameters: KDCircularProgressThumbViewParameters) {
+        thumbView = UIView()
+        thumbView.frame.size = parameters.size
+        thumbView.center = thumbCenter(degree: 130)
+        thumbView.backgroundColor = parameters.thumViewBackgroundColor
+        thumbView.layer.cornerRadius = thumbView.frame.size.height / 2
+        addSubview(thumbView)
+        
+        // border
+        thumbView.layer.borderColor = parameters.borderColor.cgColor
+        thumbView.layer.borderWidth = parameters.borderWidth
+        
+        // shadow
+        let shadowRect = thumbView.bounds.insetBy(dx: 0, dy: 2)
+        let shadowPath = UIBezierPath(roundedRect: shadowRect, cornerRadius: parameters.size.height / 2).cgPath
+        
+        thumbView.layer.shadowPath = shadowPath
+        thumbView.layer.shadowColor = UIColor.black.cgColor
+        thumbView.layer.shadowOpacity = 0.25
+        thumbView.layer.shadowOffset = CGSize.init(width: 0, height: 2)
+        
+        
+        // label
+        thumbDigitLabel.frame = CGRect(x: 0, y: thumbView.bounds.height / 2 - 9, width: thumbView.bounds.width, height: 17)
+        thumbDigitLabel.text = "88"
+        thumbDigitLabel.font = parameters.digitLabelFont
+        thumbDigitLabel.textColor = parameters.digitLabelTextColor
+        thumbDigitLabel.textAlignment = .center
+        thumbView.addSubview(thumbDigitLabel)
+        
+        // set standard frame
+        thumbDigitLabelFrame = thumbDigitLabel.frame
+        
+        // percent label
+        //        thumbPercentLabel = UILabel(frame: CGRect(x: 8 + 18, y: thumbView.bounds.height / 2 - 8.5 + 5, width: 8, height: 11))
+        //        thumbPercentLabel.text = "%"
+        //        thumbPercentLabel.font = parameters.percentLabelFont
+        //        thumbPercentLabel.textColor = parameters.percentLabelTextColor
+        //        thumbPercentLabel.textAlignment = .Left
+        //        thumbView.addSubview(thumbPercentLabel)
+        
+        // set standard frame
+        thumbPercentLabelFrame = thumbPercentLabel.frame
+        
+    }
+    
+    private func configureDigitLabelFontSize() {
+        //        if thumbDigitLabel.text == "100" {
+        //            let onePercent = thumbDigitLabel.frame.size.height / 100
+        //            let newPercents = CGFloat(Double(round(Double(thumbDigitLabel.intrinsicContentSize().width / onePercent) * 100) / 100) - 100)
+        //            print(newPercents)
+        //
+        //            // new parameters
+        //            let newDigitLabelX = thumbDigitLabelFrame.origin.x  - thumbDigitLabelFrame.origin.x / 100 * newPercents
+        //            let newDigitLabelFrame = CGRect(x: newDigitLabelX, y: thumbDigitLabelFrame.origin.y, width: thumbDigitLabel.intrinsicContentSize().width, height: thumbDigitLabel.intrinsicContentSize().height)
+        //
+        //            //
+        //            let newPercentLabelX = newDigitLabelX + thumbDigitLabel.intrinsicContentSize().width
+        //            let newPercentLabelFrame = CGRect(x: newPercentLabelX, y: thumbPercentLabelFrame.origin.y, width: thumbPercentLabelFrame.width, height: thumbPercentLabelFrame.height)
+        //
+        //            UIView.animateWithDuration(0.1, animations: {
+        //                self.thumbDigitLabel.frame = newDigitLabelFrame
+        //                self.thumbPercentLabel.frame = newPercentLabelFrame
+        //            })
+        //        } else {
+        //            UIView.animateWithDuration(0.1, animations: {
+        //                self.thumbDigitLabel.frame = self.thumbDigitLabelFrame
+        //                self.thumbPercentLabel.frame = self.thumbPercentLabelFrame
+        //            })
+        //        }
+    }
+
+    public func showThumbView(thumbParameter: KDCircularProgressThumbViewParameters) {
+        if (thumbViewIsAdded == false) {
+            thumbViewIsAdded = true
+            addThumbView(parameters: thumbParameter)
+        }
+    }
+    
+    public func setThumbViewPositions(degrees: Double) {
+        if thumbViewIsAdded == true {
+            thumbView.center = thumbCenter(degree: degrees)
+        }
+    }
+    
+    private func moveThumbView() {
+        let degree = Math.pointFromAngle(frame: bounds, angle: angle + 130, radius: Double(radius) * 0.9)
+        thumbView.center = degree
+        
+        // function for digit label
+        configureDigitLabelFontSize()
+    }
+    
+    public func moveThumbView(angle: Double) {
+        let rect = CGRect(x: 0, y: 0, width: 170, height: 170)
+        let degree = Math.pointFromAngle(frame: rect, angle: angle + 130, radius: Double(rect.height / 2) * 0.9)
+        thumbView.center = degree
+
+        configureDigitLabelFontSize()
+    }
+
+    convenience public init(frame: CGRect, thumbParameters: KDCircularProgressThumbViewParameters) {
+        self.init(frame: frame)
+        isUserInteractionEnabled = false
+        setInitialValues()
+        refreshValues()
+        checkAndSetIBColors()
+        
+        self.thumbParameters = thumbParameters
+        
+        // thumb
+        if thumbParameters.showThumbView == true {
+            addThumbView(parameters: thumbParameters)
+        }
+    }
+
+    
+    
+    private let instanceLayer = CALayer()
+    public func showAndAnimateArrow() {
+        print("showAndAnimateArrow()")
+        let tempAngle: CGFloat = Conversion.degreesToRadians(value: 225)
+        let myImage = UIImage(named: "GreenLifelineArrow")?.cgImage
+        let angle = Float(M_PI * 2.0) / 60
+        let layerWidth: CGFloat = 8.0
+        let midX = progressLayer.bounds.midX - layerWidth / 2.0
+        
+        let fadeAnimation = CABasicAnimation(keyPath: "opacity")
+        fadeAnimation.fromValue = 1.0
+        fadeAnimation.toValue = 0.0
+        fadeAnimation.duration = 3.5
+        
+        instanceLayer.frame = CGRect(x: midX, y: 0.0, width: layerWidth, height: layerWidth * 2.0)
+        instanceLayer.contents = myImage
+        instanceLayer.opacity = 0.0
+        instanceLayer.add(fadeAnimation, forKey: "FadeAnimation")
+        
+        let replicatorLayer = CAReplicatorLayer()
+        replicatorLayer.frame = progressLayer.bounds
+        replicatorLayer.instanceCount = Int(progressLayer.angle) / 6
+        replicatorLayer.instanceDelay = CFTimeInterval(1 / 15.0)
+        replicatorLayer.preservesDepth = false
+        replicatorLayer.instanceColor = UIColor.white.cgColor
+        replicatorLayer.transform = CATransform3DMakeRotation(tempAngle,0,0,1)
+        replicatorLayer.instanceTransform = CATransform3DMakeRotation(CGFloat(angle), 0, 0, 15.0)
+        replicatorLayer.addSublayer(instanceLayer)
+        progressLayer.addSublayer(replicatorLayer)
+        
+        bringSubview(toFront: thumbView)
+    }
+    
+    public func removeArrowAnimation() {
+        if instanceLayer.animation(forKey: "FadeAnimation") != nil {
+            instanceLayer.removeAnimation(forKey: "FadeAnimation")
+        }
+    }
 }
